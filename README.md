@@ -14,14 +14,15 @@ print optotrak.OAPIGetVersionString()
 a fully functional script:
 ```python
 #!/usr/bin/env python
-import poapi
+import poapi, time
 
 optotrak = poapi.Poapi()
 optotrak.TransputerInitializeSystem()
-
+optotrak.OptotrakLoadCameraParameters("standard")
+optotrak.OptotrakActivateMarkers()
+time.sleep(1)
+print (optotrak.DataGetLatest3D())
 ```
-
-
 
 Usually the python functions are called the same way as the original C functions. Sometimes
 we use the additional capabilities of Python. A few examples:
