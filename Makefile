@@ -12,7 +12,7 @@ poapi: poapi.o
 	gcc poapi.o $(LDLIBS) -o poapi
 
 install: poapi poapi.py
-	sudo cp poapi.py poapi /usr/local/lib/python2.7/dist-packages/
+	sudo cp poapi.py poapi /usr/local/lib/python2.7/dist-packages
 
 clean:
 	rm -f *.o poapi
