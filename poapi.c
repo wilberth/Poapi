@@ -367,6 +367,20 @@ int main(){
 			//int RigidBodyChangeSettings( int nRigidBodyId, int nMinMarkers, int nMaxMarkersAngle, float fMax3dError, float fMaxSensorError, float fMax3dRmsError, float fMaxSensorRmsError, int nFlags );
 			//int RigidBodyDelete( int nRigidBodyId );
 			//int RigidBodyChangeFOR( int nRigidId, int nRotationMethod );
+		} else if (cmp(line, "RigidBodyChangeSettings")){
+			int nRigidBodyId, nMinMarkers, nMaxMarkersAngle;
+			float fMax3dError, fMaxSensorError, fMax3dRmsError, fMaxSensorRmsError;
+			int nFlags;
+			strtok(line, "(");
+			char* s = strtok(NULL, ")");
+			if(s && sscanf(s, "%d, %d, %d, %f, %f, %f, %f, %d", 
+				&nRigidBodyId, &nMinMarkers, &nMaxMarkersAngle, 
+				&fMax3dError, &fMaxSensorError, &fMax3dRmsError, &fMaxSensorRmsError, &nFlags) != 4){
+				i0 = RigidBodyChangeSettings(nRigidBodyId, nMinMarkers, nMaxMarkersAngle,
+				fMax3dError, fMaxSensorError, fMax3dRmsError, fMaxSensorRmsError, nFlags);
+				printf("%d\n", i0);
+			} else
+				printf("ERROR: reading 8 arguments\n");
 		} else if (cmp(line, "DataGetLatestRaw")){
 			uint uFrameNumber=999, uElements=999, uFlags=999;
 			//FullRawDataType pFullRawData[NUM_MARKERS];
@@ -482,8 +496,8 @@ xint OdauSetDigitalOutputs( int nOdauId, unsigned *puDigitalOut, unsigned uUpdat
 xint OdauSetupCollection( int nOdauId, int nChannels, int nGain, int nDigitalMode, float fFrameFreq, float fScanFreq, int nStreamData, float fCollectionTime, float fPreTriggerTime, unsigned uFlags );
 xint OptotrakStopCollection( void );
 xint OdauGetStatus( int nOdauId, int *pnChannels, int *pnGain, int *pnDigitalMode, float *pfFrameFrequency, float *pfScanFrequency, int *pnStreamData, float *pfCollectionTime, float *pfPreTriggerTime, unsigned *puCollFlags, int *pnFlags );
-int RigidBodyAdd( int nRigidBodyId, int nStartMarker, int nNumMarkers, float *pRigidCoordinates, float *pNormalCoordinates, int nFlags );
-int RigidBodyAddFromFile( int nRigidBodyId, int nStartMarker, char *pszRigFile, int nFlags );
+xint RigidBodyAdd( int nRigidBodyId, int nStartMarker, int nNumMarkers, float *pRigidCoordinates, float *pNormalCoordinates, int nFlags );
+xint RigidBodyAddFromFile( int nRigidBodyId, int nStartMarker, char *pszRigFile, int nFlags );
 int RigidBodyChangeSettings( int nRigidBodyId, int nMinMarkers, int nMaxMarkersAngle, float fMax3dError, float fMaxSensorError, float fMax3dRmsError, float fMaxSensorRmsError, int nFlags );
 int RigidBodyDelete( int nRigidBodyId );
 //int RigidBodyChangeFOR( int nRigidId, int nRotationMethod );

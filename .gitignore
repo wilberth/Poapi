@@ -1,5 +1,7 @@
-*.ini
 poapi
+*.ini
 *.pyc
+*.o
 script
 test*
+.*
