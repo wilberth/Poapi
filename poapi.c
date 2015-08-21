@@ -36,7 +36,6 @@
 
 #define LEN 1024
 #define NUM_SENSORS 1
-#define NUM_MARKERS 8
 
 typedef struct SensorDataStruct{
 	unsigned char ucPeak;
@@ -46,12 +45,24 @@ typedef struct SensorDataStruct{
 } SensorDataType;
 
 typedef struct FullRawDataStruct{
-	float fCentroid[ NUM_SENSORS];
-	SensorDataType SensorData[ NUM_SENSORS];
+	float fCentroid[NUM_SENSORS];
+	SensorDataType SensorData[NUM_SENSORS];
 } FullRawDataType;
-Position3d *pPosition3d;
-FullRawDataType *pFullRawData;
 
+Position3d *pPosition3d = NULL;
+FullRawDataType *pFullRawData = NULL;
+int nMarkers = 0;
+void allocSpace(int n){
+	nMarkers = n;
+	
+	free(pPosition3d);
+	pPosition3d = calloc(nMarkers, sizeof(Position3d));
+	assert(pPosition3d);
+	
+	free(pFullRawData);
+	pFullRawData = calloc(nMarkers, sizeof(FullRawDataType));
+	assert(pFullRawData);
+}
 
 /*
  * Receive NDI oapi commands from the standard input and return python
@@ -68,10 +79,6 @@ int main(){
 	char s0[1024];
 	int i0;
 	int nFrameOld = -1;
-	pPosition3d = calloc(NUM_MARKERS, sizeof(Position3d));
-	assert(pPosition3d);
-	pFullRawData = calloc(NUM_MARKERS, sizeof(FullRawDataType));
-	assert(pFullRawData);
 
 	
 	while ((read = getline(&line, &len, stdin)) != -1) {
@@ -129,7 +136,6 @@ int main(){
 			OptotrakSetupCollectionFromFile(s);
 			printf("%d\n", i0);
 		} else if (cmp(line, "OptotrakSetupCollection")){
-			int nMarkers;
 			float fFrameFrequency, fMarkerFrequency;
 			int nThreshold, nMinimumGain, nStreamData;
 			float fDutyCycle, fVoltage, fCollectionTime, fPreTriggerTime;
@@ -150,6 +156,8 @@ int main(){
 					fDutyCycle, fVoltage, fCollectionTime, fPreTriggerTime, 
 					nFlags);
 				printf("%d\n", i0);
+				
+				allocSpace(nMarkers);
 			} else
 				printf("ERROR: %d arguments read (11 expected)\n", i);
 		} else if (cmp(line, "OptotrakActivateMarkers")){
@@ -383,12 +391,11 @@ int main(){
 				printf("ERROR: reading 8 arguments\n");
 		} else if (cmp(line, "DataGetLatestRaw")){
 			uint uFrameNumber=999, uElements=999, uFlags=999;
-			//FullRawDataType pFullRawData[NUM_MARKERS];
 			i0 = DataGetLatestRaw(&uFrameNumber, &uElements, &uFlags, pFullRawData);
 			printf("Frame Number: %8u\n", uFrameNumber);
 			printf("Elements    : %8u\n", uElements);
 			printf("Flags       :     0x%04x\n", uFlags);
-			for(uint uMarkerCnt=0; uMarkerCnt<NUM_MARKERS; uMarkerCnt++){
+			for(uint uMarkerCnt=0; uMarkerCnt<nMarkers; uMarkerCnt++){
 				// Print out the current marker number.
 				fprintf( stdout, "Marker %u, ", uMarkerCnt + 1 );
 				//Print out the information for each sensor.
@@ -412,10 +419,11 @@ int main(){
 			uint nFrame=999, elems=999, flags=999;
 			//Position3d dataDest[NUM_MARKERS];
 			i0 = DataGetLatest3D(&nFrame, &elems, &flags, pPosition3d);
-			printf("%d, %d, %d, %d\n", i0, nFrame, elems, flags);
-			for(uint i=0; i<NUM_MARKERS; i++){
-				printf("(%10.3g, %10.3g, %10.3g)\n", pPosition3d[i].x, pPosition3d[i].y, pPosition3d[i].z);
+			printf("(%d, %u, %u, %%0x%X, (\n", i0, nFrame, elems, flags);
+			for(uint i=0; i<nMarkers; i++){
+				printf("  (%10.3g, %10.3g, %10.3g)\n", pPosition3d[i].x, pPosition3d[i].y, pPosition3d[i].z);
 			}
+			printf(")\n");
 		} else if (cmp(line, "RequestLatest3D")){
 			i0 = RequestLatest3D();
 			printf("%d\n", i0);
@@ -423,22 +431,25 @@ int main(){
 			i0 = DataIsReady();
 			printf("%d\n", i0);
 		} else if (cmp(line, "DataReceiveLatest3D")){
+			// alle markers 3d 
 			uint nFrame=999, elems=999, flags=999;
 			Position3d dataDest;
 			i0 = DataReceiveLatest3D(&nFrame, &elems, &flags, &dataDest);
-			printf("%d, %d, %d, %d\n", i0, nFrame, elems, flags);
+			printf("(%d, %u, %u, %%0x%X, (\n", i0, nFrame, elems, flags);
+			for(uint i=0; i<nMarkers; i++){
+				printf("  (%10.3g, %10.3g, %10.3g)\n", pPosition3d[i].x, pPosition3d[i].y, pPosition3d[i].z);
+			}
 		} else if (cmp(line, "DataReceiveLatestRaw")){
 			uint nFrame, elems, flags;
-			void *dataDest;
+			void *dataDest; // todo allocate!
 			i0 = DataReceiveLatestRaw(&nFrame, &elems, &flags, &dataDest);
-			printf("%d\n", i0);
+			printf("(%d, %u, %%0x%x)\n", i0, nFrame, flags);
 		} else if (cmp(line, "DataBufferInitializeFile")){
 			//unsigned uDataId;
 			char pszFileName[len];
 			strtok(line, "\"");
 			char* s = strtok(NULL, "\"");
 			if(sscanf(s, "%s", pszFileName)==1){
-				printf("filename: %s\n", pszFileName);
 				i0 = DataBufferInitializeFile(OPTOTRAK, s);
 				printf("%d\n", i0);
 			} else
@@ -446,12 +457,20 @@ int main(){
 		} else if (cmp(line, "DataBufferSpoolData")){
 			int i = 999;
 			i0 = DataBufferSpoolData(&i);
-			printf("%d spool status %d\n", i0, i);
+			printf("(%d, %d)\n", i0, i);
 		} else if (cmp(line, "DataBufferStart")){
 			i0 = DataBufferStart();
 			printf("%d\n", i0);
 		} else if (cmp(line, "DataBufferStop")){
 			i0 = DataBufferStop();
+			printf("%d\n", i0);
+		} else if (cmp(line, "DataBufferWriteData")){
+			unsigned uRealtimeData=999, uSpoolComplete=999, uSpoolStatus=999;
+			unsigned long ulFramesBuffered=999;
+			i0 = DataBufferWriteData(&uRealtimeData, &uSpoolComplete, &uSpoolStatus, &ulFramesBuffered);
+			printf("(%d, %u, %u, %u, %lu)\n", i0, uRealtimeData, uSpoolComplete, uSpoolStatus, ulFramesBuffered);
+		} else if (cmp(line, "DataBufferAbortSpooling")){
+			i0 = DataBufferAbortSpooling();
 			printf("%d\n", i0);
 		} else {
 			printf("ERROR: no such command: %s\n", line);
@@ -541,10 +560,9 @@ int DataBufferStart( void );
 int DataBufferStop( void );
 int DataBufferSpoolData( unsigned *puSpoolStatus );
 int DataBufferWriteData( unsigned *puRealtimeData, unsigned *puSpoolComplete, unsigned *puSpoolStatus, unsigned long *pulFramesBuffered );
-
 int DataBufferAbortSpooling( void );
 
-int  FileConvert( char *pszInputFilename, char *pszOutputFilename, unsigned uFileType int  OptoFileOpen(	char* pszFilename, uint uFileId, uint uFileMode, int* pnItems, int* pnSubItems, long int *plnFrames, float* pfFrequency, char* pszComments, void** pFileHeader );
+int  FileConvert( char *pszInputFilename, char *pszOutputFilename, unsigned uFileType int  OptoFileOpen(char* pszFilename, uint uFileId, uint uFileMode, int* pnItems, int* pnSubItems, long int *plnFrames, float* pfFrequency, char* pszComments, void** pFileHeader );
 int  OptoFileRead( uint uFileId, long int lnStartFrame, uint uNumberOfFrames, void *pDataDest );
 int  OptoFileWrite( uint uFileId, long int lnStartFrame, uint uNumberOfFrames, void *pDataSrc );
 int  OptoFileClose( uint uFileId );
