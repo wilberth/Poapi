@@ -419,7 +419,7 @@ int main(){
 			uint nFrame=999, elems=999, flags=999;
 			//Position3d dataDest[NUM_MARKERS];
 			i0 = DataGetLatest3D(&nFrame, &elems, &flags, pPosition3d);
-			printf("(%d, %u, %u, %%0x%X, (\n", i0, nFrame, elems, flags);
+			printf("(%d, %u, %u, 0x%X, (\n", i0, nFrame, elems, flags);
 			for(uint i=0; i<nMarkers; i++){
 				printf("  (%10.3g, %10.3g, %10.3g)\n", pPosition3d[i].x, pPosition3d[i].y, pPosition3d[i].z);
 			}
@@ -435,7 +435,7 @@ int main(){
 			uint nFrame=999, elems=999, flags=999;
 			Position3d dataDest;
 			i0 = DataReceiveLatest3D(&nFrame, &elems, &flags, &dataDest);
-			printf("(%d, %u, %u, %%0x%X, (\n", i0, nFrame, elems, flags);
+			printf("(%d, %u, %u, 0x%X, (\n", i0, nFrame, elems, flags);
 			for(uint i=0; i<nMarkers; i++){
 				printf("  (%10.3g, %10.3g, %10.3g)\n", pPosition3d[i].x, pPosition3d[i].y, pPosition3d[i].z);
 			}
@@ -443,7 +443,7 @@ int main(){
 			uint nFrame, elems, flags;
 			void *dataDest; // todo allocate!
 			i0 = DataReceiveLatestRaw(&nFrame, &elems, &flags, &dataDest);
-			printf("(%d, %u, %%0x%x)\n", i0, nFrame, flags);
+			printf("(%d, %u, 0x%x)\n", i0, nFrame, flags);
 		} else if (cmp(line, "DataBufferInitializeFile")){
 			//unsigned uDataId;
 			char pszFileName[len];
