@@ -23,6 +23,10 @@
 	proprietary license, the licensors of this Program grant you 
 	additional permission to convey the resulting work. 
 */
+/*
+ * todo: 
+ * numsensors variable
+ */
 #define NPY_NO_DEPRECATED_API 7
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -419,11 +423,11 @@ int main(){
 			uint nFrame=999, elems=999, flags=999;
 			//Position3d dataDest[NUM_MARKERS];
 			i0 = DataGetLatest3D(&nFrame, &elems, &flags, pPosition3d);
-			printf("(%d, %u, %u, 0x%X, (\n", i0, nFrame, elems, flags);
+			printf("(%d, %u, %u, 0x%X, (", i0, nFrame, elems, flags);
 			for(uint i=0; i<nMarkers; i++){
-				printf("  (%10.3g, %10.3g, %10.3g)\n", pPosition3d[i].x, pPosition3d[i].y, pPosition3d[i].z);
+				printf("  (%10.3g, %10.3g, %10.3g),", pPosition3d[i].x, pPosition3d[i].y, pPosition3d[i].z);
 			}
-			printf(")\n");
+			printf("))\n");
 		} else if (cmp(line, "RequestLatest3D")){
 			i0 = RequestLatest3D();
 			printf("%d\n", i0);
@@ -435,10 +439,11 @@ int main(){
 			uint nFrame=999, elems=999, flags=999;
 			Position3d dataDest;
 			i0 = DataReceiveLatest3D(&nFrame, &elems, &flags, &dataDest);
-			printf("(%d, %u, %u, 0x%X, (\n", i0, nFrame, elems, flags);
+			printf("(%d, %u, %u, 0x%X, (", i0, nFrame, elems, flags);
 			for(uint i=0; i<nMarkers; i++){
-				printf("  (%10.3g, %10.3g, %10.3g)\n", pPosition3d[i].x, pPosition3d[i].y, pPosition3d[i].z);
+				printf("  (%10.3g, %10.3g, %10.3g),", pPosition3d[i].x, pPosition3d[i].y, pPosition3d[i].z);
 			}
+			printf("))\n");
 		} else if (cmp(line, "DataReceiveLatestRaw")){
 			uint nFrame, elems, flags;
 			void *dataDest; // todo allocate!
@@ -465,7 +470,7 @@ int main(){
 			i0 = DataBufferStop();
 			printf("%d\n", i0);
 		} else if (cmp(line, "DataBufferWriteData")){
-			unsigned uRealtimeData=999, uSpoolComplete=999, uSpoolStatus=999;
+			unsigned uRealtimeData=999, uSpoolComplete=0, uSpoolStatus=999;
 			unsigned long ulFramesBuffered=999;
 			i0 = DataBufferWriteData(&uRealtimeData, &uSpoolComplete, &uSpoolStatus, &ulFramesBuffered);
 			printf("(%d, %u, %u, %u, %lu)\n", i0, uRealtimeData, uSpoolComplete, uSpoolStatus, ulFramesBuffered);
@@ -554,13 +559,13 @@ int RequestNextOdauRaw( int nOdauId );
 int DataGetNextOdauRaw( int nOdauId, unsigned *pnFrame, unsigned *pElems, unsigned *pFlags, void *pDataDest );
 
 // FM I've used these before
-int DataBufferInitializeFile( unsigned uDataId, const char *pszFileName );
-int DataBufferInitializeMem( unsigned uDataId, SpoolPtrType pMemory );
-int DataBufferStart( void );
-int DataBufferStop( void );
-int DataBufferSpoolData( unsigned *puSpoolStatus );
-int DataBufferWriteData( unsigned *puRealtimeData, unsigned *puSpoolComplete, unsigned *puSpoolStatus, unsigned long *pulFramesBuffered );
-int DataBufferAbortSpooling( void );
+xint DataBufferInitializeFile( unsigned uDataId, const char *pszFileName );
+xint DataBufferInitializeMem( unsigned uDataId, SpoolPtrType pMemory );
+xint DataBufferStart( void );
+xint DataBufferStop( void );
+xint DataBufferSpoolData( unsigned *puSpoolStatus );
+xint DataBufferWriteData( unsigned *puRealtimeData, unsigned *puSpoolComplete, unsigned *puSpoolStatus, unsigned long *pulFramesBuffered );
+xint DataBufferAbortSpooling( void );
 
 int  FileConvert( char *pszInputFilename, char *pszOutputFilename, unsigned uFileType int  OptoFileOpen(char* pszFilename, uint uFileId, uint uFileMode, int* pnItems, int* pnSubItems, long int *plnFrames, float* pfFrequency, char* pszComments, void** pFileHeader );
 int  OptoFileRead( uint uFileId, long int lnStartFrame, uint uNumberOfFrames, void *pDataDest );
