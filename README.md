@@ -47,7 +47,7 @@ OdauSetAnalogOutputs(ODAU2, a, b, 0)
 
 Python:
 ```
-a, b = OdauSetAnalogOutputs(2, 1.0, 2.0, 0) 
+a, b = OdauSetAnalogOutputs("ODAU2", 1.0, 2.0, 0) 
 ```
 
 ## Shell usage

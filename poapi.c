@@ -84,6 +84,18 @@ int main(){
 	int i0;
 	int nFrameOld = -1;
 
+unsigned parseTarget(char* target){
+	unsigned t = 0x8000;
+	if(strcmp(target, "OPTOTRAK")==0) t = 0;
+	else if(strcmp(target, "DATA_PROPRIETOR")==0) t = 1;
+	else if(strcmp(target, "ODAU1")==0) t = 2;
+	else if(strcmp(target, "ODAU2")==0) t = 3;
+	else if(strcmp(target, "ODAU3")==0) t = 4;
+	else if(strcmp(target, "ODAU4")==0) t = 5;
+	else if(strcmp(target, "SENSOR_PROP1")==0) t = 6;
+	return t;
+}
+
 	
 	while ((read = getline(&line, &len, stdin)) != -1) {
 		//fprintf(stderr, "INFO: Retrieved line of length %zu (including NULL): %s", read, line);
@@ -236,54 +248,55 @@ int main(){
 				printf("ERROR: reading filename\n");
 		} else if (cmp(line, "OdauSetTimer")){
 			//int OdauSetTimer( int nOdauId, unsigned uTimer, unsigned uMode, unsigned long ulVal );
-			int nOdauId;
+			char target[len];
 			unsigned uTimer, uMode;
 			unsigned long ulVal;
 			strtok(line, "(");
 			char* s = strtok(NULL, ")");
-			if(s && sscanf(s, "%d, %u, %u, %lu", &nOdauId, &uTimer, &uMode, &ulVal) == 4){
-				i0 = OdauSetTimer(ODAU1+nOdauId-1, uMode, uTimer, ulVal);
+			if(s && sscanf(s, "%32[^, ], %u, %u, %lu", target, &uTimer, &uMode, &ulVal) == 4){
+				i0 = OdauSetTimer(parseTarget(target), uMode, uTimer, ulVal);
 				printf("%d\n", i0);
 			} else
 				printf("ERROR: reading 4 arguments\n");
 		} else if (cmp(line, "OdauSetAnalogOutputs")){
 			//int OdauSetAnalogOutputs( int nOdauId, float *pfVoltage1, float *pfVoltage2, unsigned uChangeMask );
-			int nOdauId; // 1-4 -> ODAU1-ODAU4
+			char target[len]; // ODAU1-ODAU4
 			float fVoltage1;
 			float fVoltage2;
 			unsigned uChangeMask;
 			strtok(line, "(");
 			char* s = strtok(NULL, ")");
-			if(s && sscanf(s, "%d, %f, %f, %u", &nOdauId, &fVoltage1, &fVoltage2, &uChangeMask) == 4){
-				i0 = OdauSetAnalogOutputs(ODAU1+nOdauId-1, &fVoltage1, &fVoltage2, uChangeMask);
+			if(s && sscanf(s, "%32[^, ], %f, %f, %u", target, &fVoltage1, &fVoltage2, &uChangeMask) == 4){
+				i0 = OdauSetAnalogOutputs(parseTarget(target), &fVoltage1, &fVoltage2, uChangeMask);
 				printf("(%f, %f)\n", fVoltage1, fVoltage1);
 			} else
 				printf("ERROR: reading 4 arguments\n");
 		} else if (cmp(line, "OdauSetDigitalOutputs")){
 			//int OdauSetDigitalOutputs( int nOdauId, unsigned *puDigitalOut, unsigned uUpdateMask );
-			int nOdauId; // 1-4 -> ODAU1-ODAU4
+			char target[len]; // ODAU1-ODAU4
 			unsigned uDigitalOut, uUpdateMask;
 			strtok(line, "(");
 			char* s = strtok(NULL, ")");
-			if(s && sscanf(s, "%d, %u, %u", &nOdauId, &uDigitalOut, &uUpdateMask) == 4){
-				i0 = OdauSetDigitalOutputs(ODAU1+nOdauId-1, &uDigitalOut, uUpdateMask);
+			if(s && sscanf(s, "%32[^, ], %u, %u", target, &uDigitalOut, &uUpdateMask) == 4){
+				i0 = OdauSetDigitalOutputs(parseTarget(target), &uDigitalOut, uUpdateMask);
 				printf("0x%x\n", uDigitalOut);
 			} else
 				printf("ERROR: reading 3 arguments\n");
 		} else if (cmp(line, "OdauSetupCollection")){
 			//OdauSetupCollection( int nOdauId, int nChannels, int nGain, int nDigitalMode, float fFrameFreq, float fScanFreq, int nStreamData, float fCollectionTime, float fPreTriggerTime, unsigned uFlags );
-			int nOdauId, nChannels, nGain, nDigitalMode;
+			char target[len];
+			int nChannels, nGain, nDigitalMode;
 			float fFrameFreq, fScanFreq;
 			int nStreamData;
 			float fCollectionTime, fPreTriggerTime;
 			unsigned uFlags;
 			strtok(line, "(");
 			char* s = strtok(NULL, ")");
-			if(s && sscanf(s, "%d, %d, %d, %d, %f, %f, %d, %f, %f, %u", 
-					&nOdauId, &nChannels, &nGain, &nDigitalMode, 
+			if(s && sscanf(s, "%32[^, ], %d, %d, %d, %f, %f, %d, %f, %f, %u", 
+					target, &nChannels, &nGain, &nDigitalMode, 
 					&fFrameFreq, &fScanFreq, &nStreamData,
 					&fCollectionTime, &fPreTriggerTime, &uFlags) == 10){
-				i0 = OdauSetupCollection(ODAU1+nOdauId-1, nChannels, nGain, nDigitalMode, 
+				i0 = OdauSetupCollection(parseTarget(target), nChannels, nGain, nDigitalMode, 
 					fFrameFreq, fScanFreq, nStreamData,
 					fCollectionTime, fPreTriggerTime, uFlags);
 				printf("%d\n", i0);
@@ -294,7 +307,8 @@ int main(){
 			printf("%d\n", i0);
 		} else if (cmp(line, "OdauGetStatus")){
 			 //int OdauGetStatus( int nOdauId, int *pnChannels, int *pnGain, int *pnDigitalMode, float *pfFrameFrequency, float *pfScanFrequency, int *pnStreamData, float *pfCollectionTime, float *pfPreTriggerTime, unsigned  *puCollFlags, int *pnFlags );
-			int nOdauId, nChannels, nGain, nDigitalMode;
+			char target[len];
+			int nChannels, nGain, nDigitalMode;
 			float fFrameFrequency, fScanFrequency;
 			int nStreamData;
 			float fCollectionTime, fPreTriggerTime;
@@ -302,8 +316,8 @@ int main(){
 			int nFlags;
 			strtok(line, "(");
 			char* s = strtok(NULL, ")");
-			if(s && sscanf(s, "%d", &nOdauId) == 1){
-				i0 = OdauGetStatus(ODAU1+nOdauId-1, &nChannels, &nGain, &nDigitalMode, 
+			if(s && sscanf(s, "%32[^, ]", target) == 1){
+				i0 = OdauGetStatus(parseTarget(target), &nChannels, &nGain, &nDigitalMode, 
 					&fFrameFrequency, &fScanFrequency, &nStreamData, &fCollectionTime, &fPreTriggerTime, 
 					&uCollFlags, &nFlags);
 				printf("(%d, %d, %d, %f, %f, %d, %f, %f, 0x%04x, %d)\n", 
@@ -451,11 +465,14 @@ int main(){
 			printf("(%d, %u, 0x%x)\n", i0, nFrame, flags);
 		} else if (cmp(line, "DataBufferInitializeFile")){
 			//unsigned uDataId;
-			char pszFileName[len];
-			strtok(line, "\"");
-			char* s = strtok(NULL, "\"");
-			if(sscanf(s, "%s", pszFileName)==1){
-				i0 = DataBufferInitializeFile(OPTOTRAK, s);
+			char target[len], pszFileName[len];
+			strtok(line, "(");
+			char* s = strtok(NULL, ")");
+			int a;
+			if(s && sscanf(s, "%32[^, ], %s", target, pszFileName)==2){
+				//fprintf(stderr, "target: %s, file: %s\n", target, pszFileName);
+				fprintf(stderr, "target: %s(0x%X), file: %s\n", target, parseTarget(target), pszFileName);
+				i0 = DataBufferInitializeFile(parseTarget(target), pszFileName);
 				printf("%d\n", i0);
 			} else
 				printf("ERROR: could not read filename\n");
