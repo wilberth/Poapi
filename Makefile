@@ -1,7 +1,8 @@
-CFLAGS	+= -std=c99 -I/opt/NDIoapi/ndlib/include/ -I .  -O0 -g3 -DPLATFORM_LINUX 
+CFLAGS += -std=c99 -I/opt/NDIoapi/ndlib/include/ -I .  -O0 -g3 -DPLATFORM_LINUX 
 
 LDLIBS = -L/opt/NDIoapi/ndlib/lib -loapi -lm -ldl
 
+CC = gcc
 # makefile rules ***********************************************************
 
 .PHONY : all install clean cleanall
