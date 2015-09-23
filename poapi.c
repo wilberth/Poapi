@@ -494,6 +494,17 @@ unsigned parseTarget(char* target){
 		} else if (cmp(line, "DataBufferAbortSpooling")){
 			i0 = DataBufferAbortSpooling();
 			printf("%d\n", i0);
+		} else if (cmp(line, "FileConvert")){
+			char pszInputFilename[len], pszOutputFilename[len];
+			unsigned uFileType;
+			strtok(line, "(");
+			char* s = strtok(NULL, ")");
+			if(s && sscanf(s, "%1024[^, ], %1024[^, ], %u", pszInputFilename, pszOutputFilename, &uFileType)==3){
+				// fprintf(stderr, "in: %s, out: %s, %u\n", pszInputFilename, pszOutputFilename, uFileType);
+				i0 = FileConvert(pszInputFilename, pszOutputFilename, uFileType);
+				printf("%d\n", i0);
+			} else
+				printf("ERROR: could not read 3 arguments\n");
 		} else {
 			printf("ERROR: no such command: %s\n", line);
 		}
